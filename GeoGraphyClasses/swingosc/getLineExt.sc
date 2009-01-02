@@ -1,7 +1,7 @@
 // easier to grab the line where the cursor is placed
 // av 8/12/07
-
-+ Document {
+ 
++ JSCTextView {
 
 	getLine { 
 		var lineSize = 0, index = 0, actualLine ;
@@ -13,3 +13,4 @@
 	}
 
 }
+
