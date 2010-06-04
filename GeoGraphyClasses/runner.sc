@@ -1,4 +1,4 @@
-Runner {
+Runner {			
 
 	// the runner is the object controlling all the active actants
 	// there can be many Actants but one and only Runner
@@ -16,12 +16,13 @@ Runner {
 	var <>startTime ;	// history
 
 
+
 	// constructor: we need a Graph object	
-	*new { arg graph, bpm = 60, weight = 0.1, offsetWeight = 0.0, name = \runner ; 
+	*new { arg graph, bpm = 60, weight = 1, offsetWeight = 0.0, name = \runner ; 
 		^super.new.initRunner(graph, bpm, weight, offsetWeight, name) 
 	}
 
-	initRunner { arg aGraph,  aBpm = 60, aWeight = 0.1, anOffsetWeight, aName = \runner ;
+	initRunner { arg aGraph,  aBpm = 60, aWeight = 1, anOffsetWeight, aName = \runner ;
 		graph = aGraph ;
 		graph.addDependant(this) ;
 		bpm = aBpm ;
@@ -30,7 +31,7 @@ Runner {
 		// initializing the statsDict
 		statsDict = IdentityDictionary.new ;
 		graph.graphDict.keys.do({ arg key ; statsDict[key] = 0 });
-		weight = aWeight ; // default value, tuned on amp = 0.1
+		weight = aWeight ; // default value, tuned on amp = 1
 		offsetWeight = anOffsetWeight ;
 		name = aName ;
 		startTime = thisThread.seconds ;
@@ -104,8 +105,8 @@ Runner {
 	stop { arg aID ; actantDict[aID].stop ; this.changed(this, 
 		[\handling, \stop, actantDict[aID].aID]) }
 	
-	pause { arg aID ; actantDict[aID].pause ; this.changed(this, 
-		[\handling, \pause, actantDict[aID].aID]) }
+/*	pause { arg aID ; actantDict[aID].pause ; this.changed(this, 
+		[\handling, \pause, actantDict[aID].aID]) } */ //obsolete, when actant was a Task, now is a Routine, Routine don't pause
 	
 	run { arg aID ; actantDict[aID].run ; 
 		this.changed(this, [\handling, \run, actantDict[aID].aID]) }
@@ -133,9 +134,10 @@ Runner {
 		this.changed(this, [\handling, \stopAll])
 	}
 	
-	pauseAll { actantDict.keys.asArray.do({ arg act; this.pause(act) }) ;
+/*	pauseAll { actantDict.keys.asArray.do({ arg act; this.pause(act) }) ;
 		this.changed(this, [\handling, \pauseAll])
-	}
+	} */ //obsolete, when actant was a Task, now is a Routine, Routine don't pause
+
 	
 	runAll { this.setupAll ; this.startAll ;
 		this.changed(this, [\handling, \runAll])
@@ -206,8 +208,8 @@ Runner {
 		offsetWeight = offset ;
 		this.changed(this, [\offsetWeight])
 	}
-
 	
+
 	update { arg theChanged, theChanger, more;
 		// more is the list being sent 
 		case 
@@ -215,18 +217,18 @@ Runner {
 				{ graph.graphDict.keys.do({ arg key ;
 				statsDict.atFail(key, { statsDict[key] = 0 })
 				})}
-			{ (theChanged.class == Actant).and(more[2].notNil) }
+			{ (theChanged.class == Actant).and(more[2].notNil) }	//here more = [startingVertex, vertex[..4], eID, edge, aID, weight]
 				 {
 			statsDict[more[0]] = statsDict[more[0]]+1 ; 
 			// allows to have a counter info for the synths
-			more = [\actant].addAll(more.add(offsetWeight).add(statsDict[more[0]])) ;
-			// format of more arr: 
+			more = [\actant].addAll(more.add(offsetWeight).add(statsDict[more[0]])) ;	
 			//[\actant, vID, vertex, eID, edge, aID, weight, offsetWeight, count]
 			this.changed(this, more) ;
 				}
-			{ (theChanged.class == Actant).and(more[2].isNil) }
+			{ (theChanged.class == Actant).and(more[2].isNil) } //this means that the graph sequence is finished. No loop
 				{this.removeActant(more[4]) }
-
+			
+			
 	}
 
 	gui { arg step = 35, controlNum ; 
@@ -246,14 +248,15 @@ Actant {
 	// graph is a Graph object
 	// task is global so that it can be accessed from outside
 	// i.e. to pause, stop, resume, etc
-	// also we need a synthDef 
+	// also we need a synthDef
 	// standard is an array of names
-	// bufArray an array of buffers
+	
 	var <>graph, <>task ;
 	var <>clock ; 
 	var <>startingVertex ;
 	var <>aID ;
 	var <>weight ;
+	var isPlaying = false;
 	
 	// constructor: we need a Graph object
 	*new { arg graph, aID, bpm = 60, weight = 0.1 ; 
@@ -272,7 +275,7 @@ Actant {
 		var vertex, edge, next, duration, eID ;
 		startingVertex = aStartingVertexID ? graph.graphDict.keys.choose ;
 		times = times ? inf ;
-		task = Task({
+		task = Routine({
 				times.do ({ arg i ;
 					edge = graph.graphDict[startingVertex][5..].choose ;
 					if (edge.isNil, { edge = [nil, 1, nil, nil] }) ; 
@@ -289,16 +292,18 @@ Actant {
 				}) ;
 //			"finished".postln ;
 		
-			}, clock) ;
+			}) ; // before was Task: it cannot be used to generate samples played with DiskIn or other object that requires asynchronous commands calls from inside the Task.
 		}
 
-	start { task.start ; }
+	start {  if (isPlaying == false, {
+		task.play(clock) ;
+		isPlaying = true;
+		}, {"actant"+this.aID+"already playing".postln;}) }	
+	resume { task.reset }
 	
-	resume { task.resume }
+	stop { task.stop; isPlaying = false; }
 	
-	stop { task.stop }
-	
-	pause { task.pause }
+	//pause { task.pause } Old implementation.
 	
 	run { this.setup ; this.start }
 	
