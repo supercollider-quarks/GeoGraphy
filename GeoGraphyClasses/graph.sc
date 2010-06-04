@@ -1,23 +1,24 @@
 Graph {
-
+	
 	// for sake of handling the dict must be:
 	// {vID: [x, y, vDur, vLabel, vOpts, [end, eDur, eID, eOpts], ...etc], etc:...}
-	// opts: 1 element --> use an array in case
-	var <>graphDict ;
+	var <>graphDict ;	//
 	var <>ne, <>nv ; // a counter for unique edges and vertices ID
 	var <>auto, <>rounding ; // mulScale and rounding for autoduration
+	var <>annotationSize; // the number of annotation parameters you need to be stored in the vertex opts
 		
 	// constructor: you can start with an existing graphDict
 	*new { arg graphDict = IdentityDictionary.new ; 
-		^super.new.initGraph(graphDict) 
+		^super.new.initGraph(graphDict) 	
 	}
 
 	initGraph { arg aGraphDict ;
 	// TODO: should be taken into account for ne and nv
-		aGraphDict = aGraphDict ? IdentityDictionary.new ;
-		graphDict = aGraphDict ;
+		aGraphDict = aGraphDict ? IdentityDictionary.new ;	
+		graphDict = aGraphDict ;				
 		ne = 1 ; nv = 1 ;
 		auto = 1 ;
+		annotationSize = 2; //CartoonModel uses offsetListenerArea and dy
 		this.changed ;
 	}
 	
@@ -54,14 +55,20 @@ Graph {
 	
 	// add an empty vertex
 	// so that it exists
-	// vertex is an Int
-	addVertex { arg x = nil, y = nil, dur = 0, label = "", opts = nil, vID = nil ;
-		if (vID == nil, { graphDict.add(nv -> [x, y, dur, label, opts]) ;
+	// vertex is an Int	
+	
+	addVertex { arg x = nil, y = nil, dur = 0, label = "", vopts = Array.newClear(annotationSize), vID = nil ; //create an option array filled with nil based on the number of value you need 
+		
+		if (vID == nil, { 
+			vID = nv;
+			graphDict.add(vID -> [x, y, dur, label, vopts]) ;
 			nv = nv + 1 },
-			{graphDict.add(vID -> [x, y, dur, label, opts]) ;
+			{graphDict.add(vID -> [x, y, dur, label, vopts]) ;
 			})  ;
-		this.changed
+		this.changed;
+		^vID; //return the vID created so that external application could reuse it to modify vertex info
 	}
+	
 	
 	// autoDuration allows to scale edges in relation to vertices positions
 	// --> loops are unaffected (dist = 0 not allowed)
@@ -86,10 +93,17 @@ Graph {
 	// change the position of a vertex
 	changeVertexPosition { arg vID, x, y ;
 		graphDict[vID][0] = x ;
-		graphDict[vID][1] = y ; 
+		graphDict[vID][1] = y ;
 		this.changed ;
 	}
-	
+
+	readVertexPosition { arg vID;
+		graphDict[vID][0].postln;
+		graphDict[vID][1].postln;
+	}
+
+
+
 	addAutoEdge { arg start, end, options = [] ;
 		// options might be useful sooner or later
 		var edge, dur ;
@@ -129,6 +143,17 @@ Graph {
 		graphDict[start] = graphDict[start].add(edge) ;
 		ne = ne + 1 ;
 		this.changed
+	}
+
+
+	getvID {arg vertexName; //obtain the vID of a vertex from is name
+		var found;
+		graphDict.do ({arg dict;
+			if (dict[3] == vertexName, {found = graphDict.findKeyForValue(dict);})
+		});
+		
+		^found; //the vID
+	
 	}
 
 
@@ -210,10 +235,15 @@ Graph {
 		this.changed	
 	 }
 
+	setvopts {arg vID, annotationOrder, val;
 
-/**/
-	 
+			graphDict[vID][4][annotationOrder] = val;
+	}
 	
+	setAnnotationSize { arg aSize;
+		annotationSize = aSize;
+	}
+
 
 /* Generation and processing methods */
 
@@ -278,3 +308,4 @@ Graph {
 	}
 		
 }
+              
