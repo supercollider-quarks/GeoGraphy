@@ -268,7 +268,6 @@ span.Apple-tab-span {white-space:pre}
 <p class="p7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p5"><br></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>start (aID)</b></p>
-<p class="p6"><b><span class="Apple-tab-span">	</span>pause (aID)</b></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>resume (aID)</b></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>stop (aID)</b></p>
 <p class="p7"><b><span class="Apple-tab-span">	</span></b></p>
@@ -301,8 +300,8 @@ span.Apple-tab-span {white-space:pre}
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>(</p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="s11">Routine</span>.new({</p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="s11">inf</span>.do({ <span class="s11">arg</span> i;</p>
-<p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>r.pause(1) ;</p>
-<p class="p18"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>"I have paused"<span class="s7">.postln ;</span></p>
+<p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>r.pause(1) ; //NOTE: pause is obsolete. No more supported!</p>
+<p class="p18"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>"I have paused"<span class="s7">.postln ; //NOTE: pause is obsolete. No more supported!</span></p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>(2+1.0).rand.wait ;</p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>r.resume(1) ;</p>
 <p class="p18"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>"Now I start again from where I was"<span class="s7">.postln ;</span></p>
@@ -323,7 +322,6 @@ span.Apple-tab-span {white-space:pre}
 <p class="p5"><br></p>
 <p class="p5"><br></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>startAll</b></p>
-<p class="p6"><b><span class="Apple-tab-span">	</span>pauseAll</b></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>resumeAll</b></p>
 <p class="p6"><b><span class="Apple-tab-span">	</span>stopAll</b></p>
 <p class="p7"><b><span class="Apple-tab-span">	</span></b></p>
@@ -367,8 +365,8 @@ span.Apple-tab-span {white-space:pre}
 <p class="p15"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// scheduling</p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="s11">Routine</span>.new({</p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="s11">inf</span>.do({ <span class="s11">arg</span> i;</p>
-<p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>r.pauseAll ;</p>
-<p class="p18"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>"I have paused"<span class="s7">.postln ;</span></p>
+<p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>r.pauseAll ; //NOTE: pause is obsolete. No more supported!</p>
+<p class="p18"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>"I have paused"<span class="s7">.postln ; //NOTE: pause is obsolete. No more supported!</span></p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>(0.1+0.5).rand.wait ;</p>
 <p class="p16"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>r.resumeAll ;</p>
 <p class="p18"><span class="s7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>"Now I start again from where I was"<span class="s7">.postln ;</span></p>
