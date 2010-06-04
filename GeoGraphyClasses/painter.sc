@@ -12,7 +12,7 @@
 
 Painter {
 
-	var <>graph, <>runner, <>w, <>vStaticDict, <>labelList ;
+	var <>graph, <>runner, <>w, <>vStaticDict, <>labelList, <>geoListener, <>buttListener;
 	var <>wiring ;			
 	// used for visualization flags
 	var <>vertices, <>edges, <>vLabels, <>eLabels, <>vDim, <>eDim, <>alpha, <>fontName, <>fontSize  ;	
@@ -20,35 +20,50 @@ Painter {
 	var <>statsDict ; // counts each vertex occurence
 	var <>colFact ; // a multiplier for color scaling
 	var <>auto ; // for autoscaling
+	var <>lviewdim; //for painting listener area
+	var <> windowx, windowy, windowWidth, windowHeight; //for controlling Painter window size and position
+	var windowStandard;
+	var <>vPosScale; // for controlling the position where a vertex is visualized, in case the visualization has a different scale from the position 
 
 	// constructor: you can start with an existing graphDict
-	// vDIm: was [50,20]
-	*new { arg graph, runner, vertices = true, edges = true, vLabels = true, eLabels = true, 
-			vDim = [75,20], eDim = [50,20], 
-			alpha = 0.9, colFact = 0.01, fontName = "Monaco", fontSize = 10, activation = [0.2, 1.0]; 
+	
+	*new { arg graph, runner, geoListener, vertices = true, edges = true, vLabels = true, eLabels = true,			vDim = [75,20], eDim = [50,20], 
+			alpha = 0.9, colFact = 0.01, fontName = "Monaco", fontSize = 10, activation = [0.2, 1.0],
+			windowx, windowy, windowWidth, windowHeight; 
 			
 			// colfact--> after 100 times white is reached 
-		^super.new.initPainter(graph, runner, vertices, edges, vLabels, eLabels, vDim, eDim,
-						 alpha, colFact, fontName, fontSize, activation) 
+		^super.new.initPainter(graph, runner, geoListener, vertices, edges, vLabels, eLabels, vDim, eDim,
+						 alpha, colFact, fontName, fontSize, activation, windowx, windowy, windowWidth, windowHeight) 
 	}
 
-	initPainter { arg aGraph, aRunner, vFlag, eFlag, vlFlag, elFlag, 
-			aVDim, anEDim, anAlpha, aColFact, aFontName, aFontSize, anActivation ;
+	initPainter { arg aGraph, aRunner,aGeoListener, vFlag, eFlag, vlFlag, elFlag, 
+			aVDim, anEDim, anAlpha, aColFact, aFontName, aFontSize, anActivation, aWindowx, aWindowy, aWindowWidth, aWindowHeight ;
 	// TODO: should be taken into account for ne and nv
-		var selected, key ;  // for mouse binding
+		var selected, key;  // for mouse binding
+		var a, b, orient; //for GeoListener initview
 		graph = aGraph ;
 		runner = aRunner ;
+		geoListener = aGeoListener;
 		runner.addDependant(this) ;
 		graph.addDependant(this) ;
-		w = GUI.window.new("Grand Verre", Rect(50, 50, 1200, 800)).front
+		geoListener.addDependant(this);
+		windowStandard = [50, 50, 1200, 800];
+		if (aWindowx == nil, {windowx = windowStandard[0]} , {windowx = aWindowx});
+		if (aWindowy == nil, {windowy = windowStandard[1]} , {windowy = aWindowx});
+		if (aWindowWidth == nil, {windowWidth = windowStandard[2]} , {windowWidth = aWindowWidth});
+		if (aWindowHeight == nil, {windowHeight = windowStandard[3]} , {windowHeight = aWindowHeight});
+		w = GUI.window.new("Grand Verre", Rect(windowx, windowy, windowWidth, windowHeight)).front 
 			.onClose_({ runner.removeDependant(this) ; graph.removeDependant(this) }) ;
+		
 		if ( GUI.current.name == \SwingGUI, 
 			{ w.server.sendMsg
 				( '/methodr', '[', '/method', w.id, \getPeer, ']', \setAlpha, anAlpha )
 		}) ;
+
 		alpha = anAlpha ;
 		//w.alpha_(anAlpha) ; // alpha is fucking buggy!
-		w.view.background_( Color(0.0, 0.0, 0.0, anAlpha) );
+		w.view.background_( Color(0.0, 0.0, 0.0, anAlpha) ); 
+		
 		vStaticDict = IdentityDictionary.new ;
 		// change me to a dict, please
 		labelList = [] ;
@@ -83,7 +98,19 @@ Painter {
 			key = nil ;
 			selected = nil })
 			 }.defer ;
-	this.update ;
+		
+		//GeoListener init view
+		if (geoListener != nil,
+			{
+			a = geoListener.la;
+			b = geoListener.lb;
+			orient = geoListener.lorient;
+			lviewdim = 60;
+			buttListener = this.drawListener(a,b,orient)
+			}
+		);
+
+		this.update ;		
 	}
 	
 	// calculates the total connection between two vertices
@@ -111,17 +138,23 @@ Painter {
 		
 	}
 	
-	drawVertex { arg v ;	
+	drawVertex { arg v ;
 		var item,  x, y, vLab, active, butt ;
-		item = graph.graphDict[v] ;		
-		x = item[0] ; 
-		y = item[1] ; 
+		item = graph.graphDict[v] ;	
+		if (vPosScale == nil, {	
+			x = item[0] ; 
+			y = item[1] ;
+			},{
+			x = (item[0] * vPosScale) ; 
+			y = (item[1] * vPosScale) ; 
+			}
+		); 
 		if ( vLabels == true, {	vLab = v.asString++": "++item[3] ;
 							active = "ON"},
 							{ vLab = "" ; active = "" }) ;
 		butt = GUI.staticText
-			.new(w, Rect.new(x-(vDim[0]*0.5), y-(vDim[1]*0.5), vDim[0], vDim[1])) 
-			.background_(Color(0, 0, 0, 0.7)) 
+			.new(w, Rect.new(x-(vDim[0]*0.5), y-(vDim[1]*0.5), vDim[0], vDim[1]))
+			.background_(Color(0, 0, 0, 0.7)) 	
 			.string_(vLab)
 			.align_(\center)
 			.stringColor_(Color.white)
@@ -130,10 +163,11 @@ Painter {
 	}
 
 	
-	drawEdgeLabels {
+	drawEdgeLabels {	
 		var item, v, x, y, vLab, target, tx, ty ;
 		var mx, my, xm, ym, caty, catx, catnewy, catnewx, dist1_2, i ;
 		var large = eDim[0]/2, tall = eDim[1]/2 ;
+
 		this.calculateWiring ;
 		graph.graphDict.keys.asArray.sort.do({ arg index ;
 			v = index ; //vestigial
@@ -147,7 +181,7 @@ Painter {
 					ty = target[1] ;
 					if ( x < tx, { x = x+large ; tx = tx-large }, {
 							x = x-large; tx = tx+large }) ;
-					i = wiring.occurencesOf([v, e[0]]) ; 
+					i = wiring.occurrencesOf([v, e[0]]) ; 
 					if ( y < ty, { i = i.neg } );
 					wiring.removeAt(wiring.indexOfEqual([v, e[0]] ))  ;
 					// stolen from graphista
@@ -192,7 +226,8 @@ Painter {
 				//w.refresh ;
 	}
 
-	drawEdges { 
+	drawEdges { 					
+
 		// substantially set the drawHook
 		w.drawHook = {
 			var v, x, y, vLab, target, tx, ty ;
@@ -200,8 +235,8 @@ Painter {
 			var large = vDim[0]/2, tall = vDim[1]/2 ;
 			this.calculateWiring ;
 
-			GUI.pen.width = 0.5;
-			GUI.pen.color = Color.new(1.0, 1.0, 1.0, 0.5) ;
+			GUI.pen.width = 0.5;	
+			GUI.pen.color = Color.new(1.0, 1.0, 1.0, 0.5) ; // Bug: the edges are no visible after setbackground
 			// plot  edges
 			graph.graphDict.do({ arg item, index ;
 				if (item.size > 5, { 
@@ -215,7 +250,7 @@ Painter {
 					ty = target[1] ;
 					if ( x < tx, { x = x+large ; tx = tx-large }, {
 							x = x-large; tx = tx+large }) ;
-					i = wiring.occurencesOf([v, e[0]]) ;
+					i = wiring.occurrencesOf([v, e[0]]) ;
 					if ( y < ty, { i = i.neg } );
 					wiring.removeAt(wiring.indexOfEqual([v, e[0]] ))  ;
 					// stolen from graphista
@@ -228,7 +263,14 @@ Painter {
 						// no loop
 						i = i*25 ;
 						dist1_2 = sqrt(((x-tx)**2)+((y-ty)**2)) ;
-						xm = (x+tx)*0.5 ;		    				ym = (y+ty)*0.5 ;		    				caty = abs(ty-y) ;		    				catx = tx-x ;		    				catnewy = (catx*i)/dist1_2 ;		    				if ( ty < y, { my = ym+catnewy }, {							my = ym-catnewy }) ; 		    				catnewx = (caty*i)/dist1_2 ;
+						xm = (x+tx)*0.5 ;
+		    				ym = (y+ty)*0.5 ;
+		    				caty = abs(ty-y) ;
+		    				catx = tx-x ;
+		    				catnewy = (catx*i)/dist1_2 ;
+		    				if ( ty < y, { my = ym+catnewy }, {
+							my = ym-catnewy }) ; 
+		    				catnewx = (caty*i)/dist1_2 ;
 		    				mx = xm+catnewx ; 
 						//------------------------------
 						GUI.pen.moveTo(x @ y) ;
@@ -239,8 +281,7 @@ Painter {
 					}) ;
 					GUI.pen.stroke;
 					} ;
-		//w.refresh
-	
+		//w.refresh	
 	}
 		
 
@@ -286,17 +327,41 @@ Painter {
 		}) ;
 	}
 	
-////////	
-	
-	setBackground { arg imagePath ;
-		var i ;
-		if ( GUI.current.name == \SwingGUI, {
-			i = JavaObject( "javax.swing.ImageIcon", w.server, imagePath );
-			JavaObject.basicNew( w.id, w.server ).setIcon( i );
-			w.onClose = { i.destroy } 
-			})		
+	drawListener { arg a,b,orient;	//orient visualization for GUI future implementation
+		var butt,vLab;
+		vLab = "LISTENER";
+		if (vPosScale == nil, {	
+			},{
+			a = (a * vPosScale) ; 
+			b = (b * vPosScale) ; 
+			}
+		);
+		butt = GUI.staticText
+			.new(w, Rect.new(a-(lviewdim), b-(lviewdim*0.25), lviewdim*2, lviewdim*0.5)) //a circle will be better...
+			.background_(Color(1, 1, 1, 0.7)) 
+			.string_(vLab)
+			.align_(\center)
+			.stringColor_(Color.black)
+			.font_(GUI.font.new(fontName, fontSize)) ;
+		//w.refresh ;
+		^butt
 	}
 	
+
+	setBackground { arg imagePath ;	//--> Bug: No edges visualisation after graph.setBackground
+		var i;
+		i = ImageView( w, Rect( 0, 0, windowWidth, windowHeight, 0)) ;
+		GUI.schemes.do(_.put(\imageView,ImageView));
+		i.path_(imagePath) ;
+	
+		//setBackground hides the listener.
+		if (geoListener != nil,
+			{buttListener = this.drawListener(geoListener.la,geoListener.lb,geoListener.lorient)}
+		);
+	}
+	
+
+
 	// pretty empyrical
 	calculateVColor { arg vCount, alpha = 0.7 ;
 		var r, g, b ;
@@ -309,6 +374,9 @@ Painter {
 	update { arg theChanged, theChanger, more;
 		// more is the list being sent 
 		var chgClass = theChanged.class ;
+		var chger = theChanger;
+		var a,b,orient,position;//add by M
+		
 		{
 		case 
 		{ (chgClass  == Graph).or(chgClass  == Nil) } 
@@ -321,16 +389,28 @@ Painter {
 			if ( eLabels == true, { this.drawEdgeLabels }) ;
 			if ( vertices == true, { this.drawVertices }) ;
 			w.refresh ;
+			w.front;	
 			} 
-		{ ( chgClass == Runner).and(more[0] == \actant) }
+
+		{ ( chgClass == Runner).and(more[0] == \actant) }			
 			{
 			vStaticDict[more[1]].background_(Color.red) ;
 			Routine.new({ more[2][2].clip(activation[0], activation[1]).wait ;
 				vStaticDict[more[1]]
 				.background_(this.calculateVColor( runner.statsDict[more[1]] )) ;
-				}).play ;
+				}).play ;	
+			}
+
+		{ (chgClass == GeoListener).and(chger == \position) }
+		
+			{
+			buttListener.remove;
+			a = more[1];
+			b = more[2];
+			orient = more[3];
+			buttListener = this.drawListener(a,b,orient);
 			}
 		}.defer
 	}
 	
-}
+}                                                                                                  
