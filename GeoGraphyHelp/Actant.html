@@ -29,7 +29,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p1"><b>Inherits from: Object</b></p>
 <p class="p3"><br></p>
 <p class="p1">Actant represent a dynamic element generating a time-stamped sequence of vertices in a GeoGraphy's <a href="../Users/andreavalle/Library/Application Support/SuperCollider/Extensions/Help/mine/GeoGraphy/Graph.html"><span class="s2">Graph</span></a>.</p>
-<p class="p1">It's the core element for RT sequencing: because of this aspect, it can be thought as a wrapper for a <a href="SC://Task"><span class="s2">Task</span></a>.<span class="Apple-converted-space"> </span></p>
+<p class="p1">It's the core element for RT sequencing: because of this aspect, it can be thought as a wrapper for a <a href="SC://Routine"><span class="s2">Routine</span></a>.<span class="Apple-converted-space"> </span></p>
 <p class="p1">The task simply navigates the graph. From the starting vertex, it chooses randomly among the edges departing from it, sets the ending vertex as the new vertex, and waits for the edges's duration. Then the process starts again.</p>
 <p class="p1">If the vertex is a terminal one (i.e. no edges depart from it) it terminates removing the actant (note that termination is taken into account by the Runner).</p>
 <p class="p2"><br></p>
