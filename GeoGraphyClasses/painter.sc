@@ -401,7 +401,7 @@ Painter {
 				}).play ;	
 			}
 
-		{ (chgClass == GeoListener).and(chger == \position) }
+		{ chger == \position }
 		
 			{
 			buttListener.remove;
