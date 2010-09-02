@@ -149,7 +149,7 @@ Graph {
 	getvID {arg vertexName; //obtain the vID of a vertex from is name
 		var found;
 		graphDict.do ({arg dict;
-			if (dict[3] == vertexName, {found = graphDict.findKeyForValue(dict);})
+			if (dict[3].asString == vertexName.asString, {found = graphDict.findKeyForValue(dict);})
 		});
 		
 		^found; //the vID
