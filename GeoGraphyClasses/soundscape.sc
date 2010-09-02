@@ -114,7 +114,7 @@ CartoonModel : Soundscape  {
 			}
 	
 	sendDef {				
-			 aDef = SynthDef(\CartoonModel, { arg bufnum, amp, out = 0, dur, pan = 0, cutFrequency=22.000; //SC Bug: if cutfreq>22000 LPF do not correctly work 
+			 aDef = SynthDef(\CartoonModel, { arg bufnum, amp, out = 0, dur, pan = 0, cutFrequency=22000; //SC Bug: if cutfreq>22000 LPF do not correctly work 
 							Out.ar(out, LPF.ar( 
 									Pan2.ar(			
 										amp * 
