@@ -217,10 +217,10 @@ GeoListenerGUI {
 		//w.view.background_(Color(0.9, 0.9, 0.9)) ;
 		ystep = 30;
 		xstep = 250*0.5;
-		c = StaticText.new( w, Rect( 0, 0, xstep, ystep )).string_("<-- = turn left").stringColor_(Color(0, 0, 0.3)).align_(\center);
-		c = StaticText.new( w, Rect( xstep, 0, xstep, ystep )).string_("--> = turn right").stringColor_(Color(0, 0, 0.3)).align_(\center);
-		c = StaticText.new( w, Rect( 0, ystep*1, xstep, ystep )).string_("^ = go straight").stringColor_(Color(0, 0, 0.3)).align_(\center);
-		c = StaticText.new( w, Rect( xstep, ystep*1, xstep, ystep )).string_("I = go back").stringColor_(Color(0, 0, 0.3)).align_(\center);
+		c = StaticText.new( w, Rect( 0, 0, xstep, ystep )).string_("<-- or a = turn left").stringColor_(Color(0, 0, 0.3)).align_(\center);
+		c = StaticText.new( w, Rect( xstep, 0, xstep, ystep )).string_("--> or d = turn right").stringColor_(Color(0, 0, 0.3)).align_(\center);
+		c = StaticText.new( w, Rect( 0, ystep*1, xstep, ystep )).string_("^ or w= go straight").stringColor_(Color(0, 0, 0.3)).align_(\center);
+		c = StaticText.new( w, Rect( xstep, ystep*1, xstep, ystep )).string_("I or s= go back").stringColor_(Color(0, 0, 0.3)).align_(\center);
 		c = StaticText.new( w, Rect( 0, ystep*2, 250, 30 )).string_("    CLICK AND FOCUS ON THIS WINDOWS &  ").stringColor_(Color(1, 0, 0.3));
 		c = StaticText.new( w, Rect( 0, ystep*3, 250, 30 )).string_("    PRESS POSITION CONTROL COMMAND     ").stringColor_(Color(1, 0, 0.3));
 		c = Slider( w, Rect(0, 0, 0, 0));
