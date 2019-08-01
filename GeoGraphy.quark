@@ -12,6 +12,6 @@
 	\country: 		"Italy",
 	\since: 		"2007",
 	\helpdoc: "GeoGraphyHelp/00. GeoGraphyStartup.html",
-	\ext_dependancy:  { 'SwingOSC'.asClass.notNil },
+	\ext_dependency:  { 'SwingOSC'.asClass.notNil },
 	\url:           "http://www.cirma.unito.it/andrea/geoGraphy/"
 )
